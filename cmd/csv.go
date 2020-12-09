@@ -13,8 +13,8 @@ import (
 func csvCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "csv",
-		Short: "dir structure output csv file",
-		Args:  cobra.RangeArgs(3, 3),
+		Short: "dir structure output csv file. arg1: dirpath, arg2: nest, arg3: savepath, arg4: 'win' or 'mac'",
+		Args:  cobra.RangeArgs(3, 4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return nil
@@ -27,6 +27,7 @@ func csvCmd() *cobra.Command {
 			var pathArray []dirlist.DirStruct
 			var header []string
 			var pathLen int
+			var flg string
 
 			/* 引数の取得 */
 			pathString = args[0]
@@ -38,9 +39,19 @@ func csvCmd() *cobra.Command {
 
 			savePath = args[2]
 
+			flg = args[3]
+
 			/* パス配列 */
 			// 取得
-			tempArray, err := dirlist.GetDirArray(pathString, nest)
+			var tempArray []dirlist.DirStruct
+			switch flg {
+			case "mac":
+				tempArray, err = dirlist.GetDirArray(pathString, nest)
+			case "win":
+				tempArray, err = dirlist.GetWinDirArray(pathString, nest)
+			default:
+				tempArray, err = dirlist.GetDirArray(pathString, nest)
+			}
 
 			if err != nil {
 				fmt.Println(err)
