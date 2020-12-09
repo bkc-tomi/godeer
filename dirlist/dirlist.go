@@ -5,6 +5,9 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strings"
+
+	"golang.org/x/text/encoding/japanese"
+	"golang.org/x/text/transform"
 )
 
 // LenError nest length error
@@ -25,6 +28,21 @@ func GetDirArray(dir string, nest int) ([]DirStruct, error) {
 		return nil, err
 	}
 	pathArray := pathSeparator(paths)
+	return pathArray, nil
+}
+
+// GetWinDirArray 引数で指定されたパスのディレクトリ構造を配列で返す。(文字コードはShift-JIS)
+// 例）
+// 引数：. 返り値：[dir dir_a][dir dir_b test.txt][dir dir_b test2.txt]
+func GetWinDirArray(dir string, nest int) ([]DirStruct, error) {
+	paths, err := dirwalk(dir, nest)
+	if err != nil {
+		return nil, err
+	}
+	// Shift-JISに変換
+	sjPaths := utoSj(paths)
+	pathArray := pathSeparator(sjPaths)
+
 	return pathArray, nil
 }
 
@@ -101,6 +119,15 @@ func pathSeparator(paths []string) []DirStruct {
 
 	/* 出力 */
 	return sepPaths
+}
+
+func utoSj(strArray []string) []string {
+	var results []string
+	for _, str := range strArray {
+		sjStr, _, _ := transform.String(japanese.ShiftJIS.NewEncoder(), str)
+		results = append(results, sjStr)
+	}
+	return results
 }
 
 // hasChild 引数で指定されたディレクトリがディレクトリまたはファイルと言った子要素を持つかどうかを判定する

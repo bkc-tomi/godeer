@@ -12,7 +12,7 @@ import (
 func showCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "show",
-		Short: "show dir structure on array style",
+		Short: "show dir structure on array style. arg1: dirpath, arg2:nest",
 		Args:  cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
