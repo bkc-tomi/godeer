@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"godeer/dirlist"
 	"godeer/mymath"
-	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -12,8 +11,8 @@ import (
 func showCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "show",
-		Short: "show dir structure on array style. arg1: dirpath, arg2:nest",
-		Args:  cobra.RangeArgs(1, 2),
+		Short: "show dir structure on array style. arg1: dirpath",
+		Args:  cobra.RangeArgs(1, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return nil
@@ -21,20 +20,35 @@ func showCmd() *cobra.Command {
 			/* 初期化 */
 			var pathString string
 			var nest int
+			var flg string
 			var err error
 			var pathArray []dirlist.DirStruct
 			var pathLen int
 
 			/* 引数の取得 */
 			pathString = args[0]
-			nest, err = strconv.Atoi(args[1])
+
+			nest, err = cmd.Flags().GetInt("nest")
+			if err != nil {
+				return err
+			}
+
+			flg, err = cmd.Flags().GetString("os")
 			if err != nil {
 				return err
 			}
 
 			/* パス配列 */
 			// 取得
-			tempArray, err := dirlist.GetDirArray(pathString, nest)
+			var tempArray []dirlist.DirStruct
+			switch flg {
+			case "mac":
+				tempArray, err = dirlist.GetDirArray(pathString, nest)
+			case "win":
+				tempArray, err = dirlist.GetWinDirArray(pathString, nest)
+			default:
+				tempArray, err = dirlist.GetDirArray(pathString, nest)
+			}
 
 			if err != nil {
 				fmt.Println(err)

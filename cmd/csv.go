@@ -5,7 +5,6 @@ import (
 	"godeer/csv"
 	"godeer/dirlist"
 	"godeer/mymath"
-	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -14,7 +13,7 @@ func csvCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "csv",
 		Short: "dir structure output csv file. arg1: dirpath, arg2: nest, arg3: savepath, arg4: 'win' or 'mac'",
-		Args:  cobra.RangeArgs(3, 4),
+		Args:  cobra.RangeArgs(2, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return nil
@@ -32,14 +31,17 @@ func csvCmd() *cobra.Command {
 			/* 引数の取得 */
 			pathString = args[0]
 
-			nest, err = strconv.Atoi(args[1])
+			savePath = args[1]
+
+			nest, err = cmd.Flags().GetInt("nest")
 			if err != nil {
 				return err
 			}
 
-			savePath = args[2]
-
-			flg = args[3]
+			flg, err = cmd.Flags().GetString("os")
+			if err != nil {
+				return err
+			}
 
 			/* パス配列 */
 			// 取得
