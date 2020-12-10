@@ -121,6 +121,7 @@ func pathSeparator(paths []string) []DirStruct {
 	return sepPaths
 }
 
+// utoSj utf-8 => shift-JISに文字コードを変換
 func utoSj(strArray []string) []string {
 	var results []string
 	for _, str := range strArray {
