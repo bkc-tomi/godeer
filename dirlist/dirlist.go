@@ -19,46 +19,40 @@ func (e *LenError) Error() string {
 	return fmt.Sprintf("正の値で指定してください。入力値: %d", e.len)
 }
 
-// GetDirArray 引数で指定されたパスのディレクトリ構造を配列で返す。
+// GetDirArray 引数で指定されたパスのディレクトリ構造を配列で返す。第三引数は文字コードの指定
 // 例）
-// 引数：. 返り値：[dir dir_a][dir dir_b test.txt][dir dir_b test2.txt]
-func GetDirArray(dir string, nest int) ([]DirStruct, error) {
+// 引数：. 3 "utf-8" 返り値：[dir dir_a][dir dir_b test.txt][dir dir_b test2.txt]
+func GetDirArray(dir string, nest int, char string) ([]DirStruct, error) {
 	paths, err := dirwalk(dir, nest)
 	if err != nil {
 		return nil, err
 	}
-	pathArray := pathSeparator(paths)
-	return pathArray, nil
-}
 
-// GetWinDirArray 引数で指定されたパスのディレクトリ構造を配列で返す。(文字コードはShift-JIS)
-// 例）
-// 引数：. 返り値：[dir dir_a][dir dir_b test.txt][dir dir_b test2.txt]
-func GetWinDirArray(dir string, nest int) ([]DirStruct, error) {
-	paths, err := dirwalk(dir, nest)
-	if err != nil {
-		return nil, err
+	// 文字コードの指定
+	var encodePaths []string
+	switch char {
+	case "utf-8":
+		encodePaths = paths
+	case "shift-jis":
+		encodePaths = UtoSj(paths)
+	default:
+		encodePaths = paths
 	}
-	// Shift-JISに変換
-	sjPaths := utoSj(paths)
-	pathArray := pathSeparator(sjPaths)
 
+	pathArray := pathSeparator(encodePaths)
 	return pathArray, nil
 }
 
 // dirwalk: パスで指定されたディレクトリ内の構造を配列として返す。
 func dirwalk(dir string, nest int) ([]string, error) {
-	/* 初期処理 */
 	var paths []string
 
-	/* 入力の取得 */
 	// ディレクトリ情報の取得
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
 
-	/* 本処理 */
 	if nest == 0 {
 		// 指定の深さまで達したら現在までのパスを返す。
 		paths = append(paths, dir)
@@ -77,7 +71,7 @@ func dirwalk(dir string, nest int) ([]string, error) {
 		}
 		paths = append(paths, filePath)
 	}
-	/* 出力 */
+
 	return paths, nil
 }
 
@@ -90,11 +84,8 @@ type DirStruct struct {
 // pathSeparator: パス文字列をセパレーターごとに分けて配列で返す。
 // 例）dir/dir_b/test.txt　=> [dir dir_b test.txt]
 func pathSeparator(paths []string) []DirStruct {
-	/* 初期処理 */
 	var sepPaths []DirStruct
 	separator := string(filepath.Separator)
-
-	/* 本処理 */
 
 	for _, path := range paths {
 		// ディレクトリとファイルを分離
@@ -117,17 +108,18 @@ func pathSeparator(paths []string) []DirStruct {
 		sepPaths = append(sepPaths, sepPath)
 	}
 
-	/* 出力 */
 	return sepPaths
 }
 
-// utoSj utf-8 => shift-JISに文字コードを変換
-func utoSj(strArray []string) []string {
+// UtoSj utf-8 => shift-JISに文字コードを変換
+func UtoSj(strArray []string) []string {
 	var results []string
+
 	for _, str := range strArray {
 		sjStr, _, _ := transform.String(japanese.ShiftJIS.NewEncoder(), str)
 		results = append(results, sjStr)
 	}
+
 	return results
 }
 
@@ -138,8 +130,10 @@ func hasChild(path string) bool {
 	if err != nil {
 		panic(err)
 	}
+
 	if len(files) == 0 {
 		return false
 	}
+
 	return true
 }

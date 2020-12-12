@@ -12,8 +12,18 @@ func init() {
 		showCmd(),
 		csvCmd(),
 	)
-	RootCmd.PersistentFlags().IntP("nest", "n", 10, "表示するディレクトリの深さを指定")
-	RootCmd.PersistentFlags().StringP("os", "o", "win", "csv出力の際のosごとの文字エンコード")
+	RootCmd.PersistentFlags().IntP(
+		"nest",
+		"n",
+		5,
+		"Specify the depth of the directory",
+	)
+	RootCmd.PersistentFlags().StringP(
+		"char",
+		"c",
+		"utf-8",
+		"Select charcter code(utf-8, shift-jis)",
+	)
 }
 
 // RootCmd ルートコマンド

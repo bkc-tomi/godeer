@@ -12,7 +12,7 @@ import (
 func csvCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "csv",
-		Short: "dir structure output csv file. arg1: dirpath, arg2: nest, arg3: savepath, arg4: 'win' or 'mac'",
+		Short: "dir structure output csv file. arg1: dirpath, arg2: savepath",
 		Args:  cobra.RangeArgs(2, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -38,22 +38,14 @@ func csvCmd() *cobra.Command {
 				return err
 			}
 
-			flg, err = cmd.Flags().GetString("os")
+			flg, err = cmd.Flags().GetString("char")
 			if err != nil {
 				return err
 			}
 
 			/* パス配列 */
 			// 取得
-			var tempArray []dirlist.DirStruct
-			switch flg {
-			case "mac":
-				tempArray, err = dirlist.GetDirArray(pathString, nest)
-			case "win":
-				tempArray, err = dirlist.GetWinDirArray(pathString, nest)
-			default:
-				tempArray, err = dirlist.GetDirArray(pathString, nest)
-			}
+			tempArray, err := dirlist.GetDirArray(pathString, nest, flg)
 
 			if err != nil {
 				fmt.Println(err)
@@ -75,8 +67,8 @@ func csvCmd() *cobra.Command {
 				}
 				// 整形したディレクトリ構造をpathArrayに渡す
 				pathArray = append(pathArray, dirlist.DirStruct{
-					tempDir,
-					path.File,
+					Dir:  tempDir,
+					File: path.File,
 				})
 			}
 			// headerの作成
@@ -85,8 +77,18 @@ func csvCmd() *cobra.Command {
 				header = append(header, col)
 			}
 			header = append(header, "ファイル名")
+
+			// 文字コードの変換
+			var encodeHeader []string
+			switch flg {
+			case "shift-jis":
+				encodeHeader = dirlist.UtoSj(header)
+			default:
+				encodeHeader = header
+			}
+
 			/* 出力 */
-			err = csv.Write(savePath, header, pathArray)
+			err = csv.Write(savePath, encodeHeader, pathArray)
 			if err != nil {
 				return err
 			}

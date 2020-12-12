@@ -33,22 +33,14 @@ func showCmd() *cobra.Command {
 				return err
 			}
 
-			flg, err = cmd.Flags().GetString("os")
+			flg, err = cmd.Flags().GetString("char")
 			if err != nil {
 				return err
 			}
 
 			/* パス配列 */
 			// 取得
-			var tempArray []dirlist.DirStruct
-			switch flg {
-			case "mac":
-				tempArray, err = dirlist.GetDirArray(pathString, nest)
-			case "win":
-				tempArray, err = dirlist.GetWinDirArray(pathString, nest)
-			default:
-				tempArray, err = dirlist.GetDirArray(pathString, nest)
-			}
+			tempArray, err := dirlist.GetDirArray(pathString, nest, flg)
 
 			if err != nil {
 				fmt.Println(err)
@@ -70,16 +62,27 @@ func showCmd() *cobra.Command {
 				}
 				// 整形したディレクトリ構造をpathArrayに渡す
 				pathArray = append(pathArray, dirlist.DirStruct{
-					tempDir,
-					path.File,
+					Dir:  tempDir,
+					File: path.File,
 				})
 			}
 			/* 画面出力 */
 			for _, path := range pathArray {
-				// ディレクトリの表示
+				//　文字コードの変換
+				var tempDir []string
+				switch flg {
+				case "utf-8":
+					tempDir = path.Dir
+				case "shift-jis":
+					tempDir = dirlist.UtoSj(path.Dir)
+				default:
+					tempDir = path.Dir
+				}
+
 				deep := 1
-				for _, dir := range path.Dir {
-					fmt.Printf("第%d階層: %10s, ", deep, dir)
+				// ディレクトリの表示
+				for _, dir := range tempDir {
+					fmt.Printf("第%d階層: %25s, ", deep, dir)
 					deep++
 				}
 				// ファイルの表示
